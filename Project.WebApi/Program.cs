@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Project.Data.Context;
+using Project.Data.Repositories;
+using Project.Data.UnitOfWork;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,10 @@ builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("default");
 builder.Services.AddDbContext<FinalProjectDbContext>(options => options.UseSqlServer(connectionString));
+
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
