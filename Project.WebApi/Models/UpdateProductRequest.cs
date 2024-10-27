@@ -2,10 +2,9 @@
 
 namespace Project.WebApi.Models
 {
-    public class ProductRequest
+    public class UpdateProductRequest
     {
-        [Required]
-        [Length(2,50)]
+        [Required]       
         public string ProductName { get; set; }
         [Required]
         public decimal Price { get; set; }

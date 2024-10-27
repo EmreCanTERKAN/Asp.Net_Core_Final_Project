@@ -25,7 +25,18 @@ namespace Project.WebApi.Controllers
             return Ok(products);
         }
 
-        [HttpPost]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetProduct(int id)
+        {
+            var product = await _productService.GetProduct(id);
+            if (product is null)
+            {
+                return NotFound();
+            }
+            return Ok(product);
+        }
+
+        [HttpPost("add/Product")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddProduct(ProductRequest request)
         {
@@ -41,11 +52,11 @@ namespace Project.WebApi.Controllers
                 StockQuantity = request.StockQuantity,
             };
 
-           var result = await _productService.AddProduct(addProductDto);
+            var result = await _productService.AddProduct(addProductDto);
 
             if (result.IsSucceed)
             {
-                return Ok(result);
+                return Ok(addProductDto);
             }
             else
             {
@@ -71,7 +82,7 @@ namespace Project.WebApi.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteProduct (int id)
+        public async Task<IActionResult> DeleteProduct(int id)
         {
             var result = await _productService.DeleteProduct(id);
             if (!result.IsSucceed)
@@ -82,7 +93,32 @@ namespace Project.WebApi.Controllers
             {
                 return Ok(result.Message);
             }
-        } 
+        }
+
+        [HttpPut]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateProduct(int id, UpdateProductRequest request)
+        {
+            var updateProductDto = new UpdateProductDto
+            {
+                Id = id,
+                ProductName = request.ProductName,
+                Price = request.Price,
+                StockQuantity = request.StockQuantity,
+            };
+            var result = await _productService.UpdateProduct(updateProductDto);
+
+            if (!result.IsSucceed)
+            {
+                return NotFound(result.Message);
+            }
+            else
+            {
+                return await GetProduct(id);
+            }
+        }
+
+
 
     }
 }

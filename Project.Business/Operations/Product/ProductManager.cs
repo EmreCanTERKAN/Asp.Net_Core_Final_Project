@@ -60,7 +60,6 @@ namespace Project.Business.Operations.Product
 
 
         }
-
         public async Task<ServiceMessage> DeleteProduct(int id)
         {
             var product = _repository.GetById(id);
@@ -93,7 +92,6 @@ namespace Project.Business.Operations.Product
                 Message = "Ürün Başarılı Şekilde Silinmiştir"
             };
         }
-
         public async Task<List<ProductDto>> GetAllProducts()
         {
             var products = await _repository.GetAll()
@@ -107,7 +105,53 @@ namespace Project.Business.Operations.Product
 
             return products;
         }
+        public async Task<ProductDto> GetProduct(int id)
+        {
+            var product = await _repository.GetAll(x => x.Id == id)
+                .Select(x => new ProductDto
+                {
+                    Id = x.Id,
+                    ProductName = x.ProductName,
+                    Price = x.Price,
+                    StockQuantity = x.StockQuantity
+                }).FirstOrDefaultAsync();
+            return product;
+        }
+        public async Task<ServiceMessage> UpdateProduct(UpdateProductDto product)
+        {
+            var productEntity = _repository.GetById(product.Id);
+            if (productEntity is null)
+            {
+                return new ServiceMessage
+                {
+                    IsSucceed = true,
+                    Message = "Ürün Bulunamadı"
+                };
+            }
 
+            productEntity.ProductName = product.ProductName;
+            productEntity.Price = product.Price;
+            productEntity.StockQuantity = product.StockQuantity;
+
+            await _repository.Update(productEntity);
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Bir hata ile karşılaşıldı.");
+            }
+
+            return new ServiceMessage
+            {
+                IsSucceed = true,
+                Message = "İşlem Başarılı."
+            };
+
+        }
         public async Task<ServiceMessage> UpdateProductStock(int id, int changeBy)
         {
             var product = _repository.GetById(id);
@@ -136,8 +180,9 @@ namespace Project.Business.Operations.Product
             return new ServiceMessage
             {
                 IsSucceed = true
-                
+
             };
         }
+
     }
 }

@@ -18,5 +18,8 @@ namespace Project.Business.Operations.Product
 
         Task<List<ProductDto>> GetAllProducts();
         
+        Task<ProductDto> GetProduct(int id);
+
+        Task<ServiceMessage> UpdateProduct(UpdateProductDto product);
     }
 }
