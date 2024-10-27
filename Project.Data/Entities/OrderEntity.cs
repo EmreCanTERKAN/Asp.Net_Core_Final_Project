@@ -13,7 +13,7 @@ namespace Project.Data.Entities
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
 
-        // Foreing Key
+        // Foreing Key 
         public int UserId { get; set; }
 
 

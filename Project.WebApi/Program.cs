@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Project.Business.DataProtection;
+using Project.Business.Operations.Product;
 using Project.Business.Operations.User;
 using Project.Data.Context;
 using Project.Data.Repositories;
@@ -81,7 +82,7 @@ builder.Services.AddDbContext<FinalProjectDbContext>(options => options.UseSqlSe
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserService, UserManager>();
-
+builder.Services.AddScoped<IProductService, ProductManager>();
 
 
 

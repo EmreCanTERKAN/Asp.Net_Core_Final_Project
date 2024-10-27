@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Project.Business.Operations.User;
 using Project.Business.Operations.User.Dtos;
@@ -113,6 +114,13 @@ namespace Project.WebApi.Controllers
             });
 
 
+        }
+
+        [HttpGet("TokenDeneme")]
+        [Authorize]
+        public IActionResult Test()
+        {
+            return Ok();
         }
 
     }
