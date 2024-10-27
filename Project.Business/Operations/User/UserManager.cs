@@ -108,8 +108,7 @@ namespace Project.Business.Operations.User
         public ServiceMessage<UserInfoDto> LoginUser(LoginUserDto user)
         {
             var userEntity = _userRepository.Get(x => x.Email.ToLower() == user.Email.ToLower());
-           
-
+          
             if (userEntity is null)
             {
                 return new ServiceMessage<UserInfoDto>
@@ -128,12 +127,10 @@ namespace Project.Business.Operations.User
                     IsSucceed = true,
                     Data = new UserInfoDto
                     {
+                        Id = userEntity.Id,
                         Email = userEntity.Email,
-                        FirstName = userEntity.FirstName,
-                        LastName = userEntity.LastName,
-                        UserType = userEntity.UserType
-                       
-                    }
+                        UserType = userEntity.UserType                      
+                    },                                  
                 };
             }
             else

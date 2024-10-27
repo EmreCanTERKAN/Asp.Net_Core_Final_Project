@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Project.Business.Operations.User;
 using Project.Business.Operations.User.Dtos;
+using Project.WebApi.Jwt;
 using Project.WebApi.Models;
 
 namespace Project.WebApi.Controllers
@@ -82,20 +83,34 @@ namespace Project.WebApi.Controllers
             {
                 return BadRequest(ModelState);
             }
-
             var loginUserDto = new LoginUserDto
             {
                 Email = request.Email,
                 Password = request.Password,
             };
-
             var result = _userService.LoginUser(loginUserDto);
-
             if (!result.IsSucceed)
             {
                 return BadRequest(result.Message);
             }
-            //TOKEN
+            var user = result.Data;
+            //Property Injection yapıldı.
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var token = JwtHelper.GenerateJwtToken(new JwtDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserType = user.UserType,
+                SecretKey = configuration["Jwt:SecretKey"]!,
+                Issuer = configuration["Jwt:Issuer"]!,
+                Audience = configuration["Jwt:Audience"]!,
+                ExpireMinutes = int.Parse(configuration["Jwt:ExpireMinutes"]!)
+            });
+            return Ok(new LoginResponse
+            {
+                Message = "Giriş başarıyla gerçekleşti",
+                Token = token
+            });
 
 
         }

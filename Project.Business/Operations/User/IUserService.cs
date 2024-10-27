@@ -12,7 +12,6 @@ namespace Project.Business.Operations.User
     {
         Task<ServiceMessage> AddUser(AddUserDto user);
         Task<ServiceMessage> AddAdmin(AddAdminDto admin);
-
         ServiceMessage<UserInfoDto> LoginUser(LoginUserDto user);
     }
 }
