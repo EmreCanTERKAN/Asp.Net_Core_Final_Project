@@ -27,7 +27,7 @@ namespace Project.Data.Context
 
 
         public DbSet<OrderEntity> Orders => Set<OrderEntity>();
-        public DbSet<OrderProductEntity> OrderProductEntities => Set<OrderProductEntity>();
+        public DbSet<OrderProductEntity> OrderProduct => Set<OrderProductEntity>();
         public DbSet<ProductEntity> Products => Set<ProductEntity>();
         public DbSet<UserEntity> Users => Set<UserEntity>();
 
