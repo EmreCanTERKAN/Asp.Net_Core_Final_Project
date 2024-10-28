@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Project.Business.Operations.Order.Dto;
 using Project.Business.Operations.Product;
 using Project.Business.Types;
@@ -22,8 +23,9 @@ namespace Project.Business.Operations.Order
         private readonly IRepository<OrderProductEntity> _orderProductRepository;
         private readonly IRepository<ProductEntity> _productRepository;
         private readonly FinalProjectDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public OrderManager(IUnitOfWork unitOfWork, IProductService productService, IRepository<OrderEntity> orderRepository, IRepository<OrderProductEntity> orderProductRepository, IRepository<ProductEntity> productRepository, FinalProjectDbContext context )
+        public OrderManager(IUnitOfWork unitOfWork, IProductService productService, IRepository<OrderEntity> orderRepository, IRepository<OrderProductEntity> orderProductRepository, IRepository<ProductEntity> productRepository, FinalProjectDbContext context, IMemoryCache cache )
         {
             _unitOfWork = unitOfWork;
             _productService = productService;
@@ -31,6 +33,7 @@ namespace Project.Business.Operations.Order
             _orderProductRepository = orderProductRepository;
             _productRepository = productRepository;
             _context = context;
+            _cache = cache;
         }
 
         public async Task<ServiceMessage> AddOrder(AddOrderDto orderDto)
@@ -110,42 +113,50 @@ namespace Project.Business.Operations.Order
                 throw new Exception("Kayıt sırasında bir hata oluştu.", ex);
             }
         }
-
-        public async Task<List<OrderListDto>> GetAllOrders()
+        public async Task<List<OrderListDto>> GetAllOrders(int pageNumber = 1, int pageSize = 10)
         {
-            var orders = await _context.Orders
-                .Include(o => o.OrderProducts)
-                .ThenInclude(op => op.Product)
-                .Include(o => o.User)
-                .ToListAsync();
+            const string cacheKey = "orderList";
+            List<OrderListDto> orderListDtos;
 
-            var orderListDtos = new List<OrderListDto>();
+            // Cache'i kontrol et ve sayfa bilgilerini anahtara ekle
+            var cacheKeyWithPagination = $"{cacheKey}-page{pageNumber}-size{pageSize}";
 
-            foreach (var order in orders)
+            if (!_cache.TryGetValue(cacheKeyWithPagination, out orderListDtos))
             {
-                var orderProducts = order.OrderProducts.Select(op => new OrderProductDto
-                {
-                    ProductId = op.ProductId,
-                    Quantity = op.Quantity,
-                    Price = op.Product.Price
-                }).ToList();
+                // Veritabanı sorgusunu sayfalama yaparak çek
+                var orders = await _context.Orders
+                    .Include(o => o.OrderProducts)
+                    .ThenInclude(op => op.Product)
+                    .Include(o => o.User)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
 
-                var orderListDto = new OrderListDto
+                // Veriyi DTO'ya dönüştür
+                orderListDtos = orders.Select(order => new OrderListDto
                 {
                     OrderId = order.Id,
                     OrderDate = order.OrderDate,
                     TotalAmount = order.TotalAmount,
-                    OrderProducts = orderProducts,
+                    OrderProducts = order.OrderProducts.Select(op => new OrderProductDto
+                    {
+                        ProductId = op.ProductId,
+                        Quantity = op.Quantity,
+                        Price = op.Product.Price
+                    }).ToList(),
                     UserId = order.UserId,
-                    UserFullName = $"{order.User.FirstName} {order.User.LastName}"                   
-                };
+                    UserFullName = $"{order.User.FirstName} {order.User.LastName}"
+                }).ToList();
 
-                orderListDtos.Add(orderListDto);
+                // Cache'e kaydet
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+
+                _cache.Set(cacheKeyWithPagination, orderListDtos, cacheEntryOptions);
             }
 
             return orderListDtos;
         }
-
         public async Task<OrderListDto> GetOrderById(int orderId)
         {
             var order = await _context.Orders

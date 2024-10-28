@@ -78,6 +78,8 @@ var connectionString = builder.Configuration.GetConnectionString("default");
 builder.Services.AddDbContext<FinalProjectDbContext>(options => options.UseSqlServer(connectionString));
 
 
+//caching
+builder.Services.AddMemoryCache();
 
 //DependencyInjection Ayarlarý
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

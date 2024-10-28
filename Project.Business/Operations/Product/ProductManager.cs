@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Project.Business.Operations.Product.Dtos;
 using Project.Business.Types;
 using Project.Data.Entities;
@@ -16,11 +17,13 @@ namespace Project.Business.Operations.Product
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<ProductEntity> _repository;
+        private readonly IMemoryCache _cache;
 
-        public ProductManager(IUnitOfWork unitOfWork, IRepository<ProductEntity> repository)
+        public ProductManager(IUnitOfWork unitOfWork, IRepository<ProductEntity> repository, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _repository = repository;
+            _cache = cache;
         }
         public async Task<ServiceMessage> AddProduct(AddProductDto product)
         {
@@ -94,16 +97,27 @@ namespace Project.Business.Operations.Product
         }
         public async Task<List<ProductDto>> GetAllProducts()
         {
-            var products = await _repository.GetAll()
-                .Select(x => new ProductDto
-                {
-                    Id = x.Id,
-                    ProductName = x.ProductName,
-                    Price = x.Price,
-                    StockQuantity = x.StockQuantity
-                }).ToListAsync();
+            //cache
+            if (!_cache.TryGetValue("ProductsCache",out List<ProductDto> cachedProducts))
+            {
+                var products = await _repository.GetAll()
+               .Select(x => new ProductDto
+               {
+                   Id = x.Id,
+                   ProductName = x.ProductName,
+                   Price = x.Price,
+                   StockQuantity = x.StockQuantity
+               }).ToListAsync();
 
-            return products;
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(5));
+
+                _cache.Set("ProductsCache", products, cacheEntryOptions);
+
+                cachedProducts = products;
+            }
+
+            return cachedProducts!;
         }
         public async Task<ProductDto> GetProduct(int id)
         {
@@ -115,7 +129,7 @@ namespace Project.Business.Operations.Product
                     Price = x.Price,
                     StockQuantity = x.StockQuantity
                 }).FirstOrDefaultAsync();
-            return product;
+            return product!;
         }
         public async Task<ServiceMessage> UpdateProduct(UpdateProductDto product)
         {

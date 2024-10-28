@@ -12,7 +12,7 @@ namespace Project.Business.Operations.Order
     {
         Task<ServiceMessage> AddOrder(AddOrderDto order);
 
-        Task<List<OrderListDto>> GetAllOrders();
+        Task<List<OrderListDto>> GetAllOrders(int pageNumber, int pageSize);
         Task<OrderListDto> GetOrderById(int orderId);
     }
 }

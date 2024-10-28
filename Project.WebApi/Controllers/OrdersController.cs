@@ -49,9 +49,9 @@ namespace Project.WebApi.Controllers
         }
 
         [HttpGet("GetAllOrders")]
-        public async Task<IActionResult> GetAllOrders()
+        public async Task<IActionResult> GetAllOrders([FromQuery]int pageNumber = 1, [FromQuery]int pageSize=10)
         {
-            var orders = await _orderService.GetAllOrders();
+            var orders = await _orderService.GetAllOrders(pageNumber,pageSize);
             return Ok(orders);
         }
 
