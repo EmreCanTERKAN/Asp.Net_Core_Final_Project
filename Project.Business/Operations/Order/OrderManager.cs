@@ -191,7 +191,9 @@ namespace Project.Business.Operations.Order
 
             try
             {
-                var existingOrder = _orderRepository.GetById(orderId);
+                var existingOrder = _orderRepository.GetAll()
+                    .Include(o => o.OrderProducts)
+                    .FirstOrDefault(o => o.Id == orderId);
 
                 if (existingOrder is null)
                 {

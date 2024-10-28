@@ -4,6 +4,6 @@ namespace Project.WebApi.Models
 {
     public class UpdateOrderRequest
     {
-        public List<UpdateOrderProductDto> Products { get; set; }
+        public List<OrderProductDto> Products { get; set; }
     }
 }
