@@ -11,5 +11,8 @@ namespace Project.Business.Operations.Order
     public interface IOrderService
     {
         Task<ServiceMessage> AddOrder(AddOrderDto order);
+
+        Task<List<OrderListDto>> GetAllOrders();
+        Task<OrderListDto> GetOrderById(int orderId);
     }
 }

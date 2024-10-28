@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Project.Business.Operations.Order;
 using Project.Business.Operations.Order.Dto;
@@ -18,9 +19,10 @@ namespace Project.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddOrder(AddOrderRequest orderRequest)
         {
-            var userIdClaim = User.FindFirst("id");
+            var userIdClaim = User.FindFirst("Id");
             if (userIdClaim is null)
             {
                 return Unauthorized("Kullanıcı kimliği doğrulanamadı.");
@@ -44,6 +46,26 @@ namespace Project.WebApi.Controllers
                 return BadRequest();
             }
             return Ok(result.Message);
+        }
+
+        [HttpGet("GetAllOrders")]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            var orders = await _orderService.GetAllOrders();
+            return Ok(orders);
+        }
+
+        [HttpGet("{orderId}")]
+        public async Task<IActionResult> GetOrderById(int orderId)
+        {
+            var order = await _orderService.GetOrderById(orderId);
+
+            if(order is null)
+            {
+                return NotFound($"Sipariş {orderId} bulunamadı.");
+            }
+
+            return Ok(order);
         }
     }
 }
