@@ -39,7 +39,7 @@ namespace Project.Data.Repositories
             {
                 _dbSet.Remove(entity);
             }
-           // await _dbContext.SaveChangesAsync();
+           
         }
 
         public async Task Delete(int id)

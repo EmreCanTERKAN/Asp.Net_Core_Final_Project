@@ -25,7 +25,7 @@ namespace Project.Business.Operations.Order
         private readonly FinalProjectDbContext _context;
         private readonly IMemoryCache _cache;
 
-        public OrderManager(IUnitOfWork unitOfWork, IProductService productService, IRepository<OrderEntity> orderRepository, IRepository<OrderProductEntity> orderProductRepository, IRepository<ProductEntity> productRepository, FinalProjectDbContext context, IMemoryCache cache )
+        public OrderManager(IUnitOfWork unitOfWork, IProductService productService, IRepository<OrderEntity> orderRepository, IRepository<OrderProductEntity> orderProductRepository, IRepository<ProductEntity> productRepository, FinalProjectDbContext context, IMemoryCache cache)
         {
             _unitOfWork = unitOfWork;
             _productService = productService;
@@ -183,6 +183,60 @@ namespace Project.Business.Operations.Order
             };
 
             return orderListDto;
+        }
+
+        public async Task<ServiceMessage> UpdateOrderProduts(int orderId, UpdateOrderDto updateOrderDto)
+        {
+            await _unitOfWork.BeginTransaction();
+
+            try
+            {
+                var existingOrder = _orderRepository.GetById(orderId);
+
+                if (existingOrder is null)
+                {
+                    return new ServiceMessage
+                    {
+                        IsSucceed = false,
+                        Message = "Sipariş bulunamadı"
+                    };
+                }
+
+
+                var existingOrderProducts = existingOrder.OrderProducts.ToList();
+                foreach (var product in existingOrderProducts)
+                {
+                    await _orderProductRepository.Delete(product, false);
+                }
+                foreach (var newProduct in updateOrderDto.Products)
+                {
+                    var orderProduct = new OrderProductEntity
+                    {
+                        ProductId = newProduct.ProductId,
+                        Quantity = newProduct.Quantity,
+                        OrderId = orderId
+                    };
+                    await _orderProductRepository.Add(orderProduct);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
+
+                return new ServiceMessage
+                {
+                    IsSucceed = true,
+                    Message = "Sipariş Başarıyla Güncellendi."
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollBackTransaction();
+                return new ServiceMessage
+                {
+                    IsSucceed = false,
+                    Message = "Güncelleme sırasında bir hata oluştu: " + ex.Message
+                };             
+            }
+            
         }
     }
 }

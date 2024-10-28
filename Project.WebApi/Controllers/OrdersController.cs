@@ -67,5 +67,30 @@ namespace Project.WebApi.Controllers
 
             return Ok(order);
         }
+
+        [HttpPut("{orderId}")]
+        public async Task<IActionResult> UpdateOrder(int orderId, [FromBody] UpdateOrderRequest request)
+        {
+            if (request is null || request.Products is null || !request.Products.Any())
+            {
+                return BadRequest("Güncellenecek ürün bilgileri eksik.");
+            }
+
+            var orderDto = new UpdateOrderDto
+            {
+                Products = request.Products,
+            };
+
+            var result = await _orderService.UpdateOrderProduts(orderId, orderDto);
+
+            if (result.IsSucceed)
+            {
+                return Ok(result.Message);
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
     }
 }

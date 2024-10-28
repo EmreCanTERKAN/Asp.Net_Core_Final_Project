@@ -14,5 +14,6 @@ namespace Project.Business.Operations.Order
 
         Task<List<OrderListDto>> GetAllOrders(int pageNumber, int pageSize);
         Task<OrderListDto> GetOrderById(int orderId);
+        Task<ServiceMessage> UpdateOrderProduts(int orderId, UpdateOrderDto updateOrderDto);
     }
 }
