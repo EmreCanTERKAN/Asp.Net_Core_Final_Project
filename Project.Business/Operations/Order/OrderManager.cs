@@ -170,7 +170,7 @@ namespace Project.Business.Operations.Order
                 return new ServiceMessage<OrderListDto>
                 {
                     IsSucceed = false,
-                    Message = $"{orderId}li sipariş bulunmaadı",
+                    Message = $"{orderId}li sipariş bulunamadı..",
 
                 };
             }

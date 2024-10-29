@@ -1,0 +1,32 @@
+﻿@model IEnumerable<ProductDto>
+@{
+    ViewData["Title"] = "Product List";
+}
+<h1>Product List</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>StockQuantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.ProductName</td>
+                <td>@product.Price</td>
+                <td>@product.StockQuantity</td>
+                <td>
+                    <a asp-action="Edit" asp-asp-route-id="@product.Id" class="btn btn-success">Edit</a>
+                    <a asp-action="Delete" asp-asp-route-id="@product.Id" class="btn btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
