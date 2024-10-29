@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Project.MVC.Models;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 
 namespace Project.MVC.Controllers
@@ -27,11 +28,17 @@ namespace Project.MVC.Controllers
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+            var email = jwtToken?.Claims.FirstOrDefault(c => c.Type == "Email")?.Value;
+
+            ViewBag.UserEmail = email;
+
             var response = await client.GetAsync("Products/GetAllProduct");
 
             if (response.IsSuccessStatusCode)
             {
-                var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
+                var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();               
                 return View(products);
             }
 
