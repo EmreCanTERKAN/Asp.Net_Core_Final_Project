@@ -157,14 +157,23 @@ namespace Project.Business.Operations.Order
 
             return orderListDtos;
         }
-        public async Task<OrderListDto> GetOrderById(int orderId)
+        public async Task<ServiceMessage<OrderListDto>> GetOrderById(int orderId)
         {
             var order = await _context.Orders
                 .Include(o => o.OrderProducts)
                 .ThenInclude(op => op.Product)
                 .Include(o => o.User)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+                .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
 
+            if (order is null)
+            {
+                return new ServiceMessage<OrderListDto>
+                {
+                    IsSucceed = false,
+                    Message = $"{orderId}li sipariş bulunmaadı",
+
+                };
+            }
             var orderProducts = order.OrderProducts.Select(op => new OrderProductDto
             {
                 ProductId = op.ProductId,
@@ -182,7 +191,50 @@ namespace Project.Business.Operations.Order
                 UserFullName = $"{order.User.FirstName} {order.User.LastName}"
             };
 
-            return orderListDto;
+            return new ServiceMessage<OrderListDto>
+            {
+                IsSucceed = true,
+                Data = orderListDto
+            };
+        }
+
+        public async Task<ServiceMessage> SoftDeleteOrder(int orderId)
+        {
+            var existingOrder = _orderRepository.GetById(orderId);
+
+            if (existingOrder is null)
+            {
+                return new ServiceMessage
+                {
+                    IsSucceed = false,
+                    Message = "Sipariş Bulunamadı"
+                };
+            }
+
+            existingOrder.IsDeleted = true;
+            existingOrder.ModifiedDate = DateTime.Now;
+
+            await _orderRepository.Update(existingOrder);
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceMessage
+                {
+                    IsSucceed = true,
+                    Message = "Sipariş başarıyla silinmiştir."
+                };
+            }
+            catch (Exception)
+            {
+                return new ServiceMessage
+                {
+                    IsSucceed = false,
+                    Message = "Silme işlemi sırasında bir hata oluştu"
+                };
+
+            }
+
         }
 
         public async Task<ServiceMessage> UpdateOrderProduts(int orderId, UpdateOrderDto updateOrderDto)
@@ -203,7 +255,20 @@ namespace Project.Business.Operations.Order
                         Message = "Sipariş bulunamadı"
                     };
                 }
-
+                // Yeni ürünlerin her birinin stok miktarını kontrol et
+                foreach (var newProduct in updateOrderDto.Products)
+                {
+                    var productEntity = _productRepository.GetById(newProduct.ProductId);
+                    if (productEntity is null || productEntity.StockQuantity < newProduct.Quantity)
+                    {
+                        await _unitOfWork.RollBackTransaction();
+                        return new ServiceMessage
+                        {
+                            IsSucceed = false,
+                            Message = $"Ürün Id{newProduct.ProductId} için yeterli stok bulunmamaktadır."
+                        };
+                    }
+                }
 
                 var existingOrderProducts = existingOrder.OrderProducts.ToList();
                 foreach (var product in existingOrderProducts)
@@ -236,9 +301,10 @@ namespace Project.Business.Operations.Order
                 {
                     IsSucceed = false,
                     Message = "Güncelleme sırasında bir hata oluştu: " + ex.Message
-                };             
+                };
             }
-            
+
         }
+
     }
 }

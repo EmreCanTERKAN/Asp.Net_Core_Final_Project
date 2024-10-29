@@ -49,9 +49,9 @@ namespace Project.WebApi.Controllers
         }
 
         [HttpGet("GetAllOrders")]
-        public async Task<IActionResult> GetAllOrders([FromQuery]int pageNumber = 1, [FromQuery]int pageSize=10)
+        public async Task<IActionResult> GetAllOrders([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var orders = await _orderService.GetAllOrders(pageNumber,pageSize);
+            var orders = await _orderService.GetAllOrders(pageNumber, pageSize);
             return Ok(orders);
         }
 
@@ -60,12 +60,12 @@ namespace Project.WebApi.Controllers
         {
             var order = await _orderService.GetOrderById(orderId);
 
-            if(order is null)
+            if (!order.IsSucceed)
             {
                 return NotFound($"Sipariş {orderId} bulunamadı.");
             }
 
-            return Ok(order);
+            return Ok(order.Data);
         }
 
         [HttpPut("{orderId}")]
@@ -91,6 +91,13 @@ namespace Project.WebApi.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        [HttpDelete("{orderId}")]
+        public async Task<IActionResult> SoftDeleteOrder(int orderId)
+        {
+            var result = await _orderService.SoftDeleteOrder(orderId);
+            return result.IsSucceed ? Ok(result.Message) : BadRequest(result.Message);
         }
     }
 }

@@ -13,7 +13,9 @@ namespace Project.Business.Operations.Order
         Task<ServiceMessage> AddOrder(AddOrderDto order);
 
         Task<List<OrderListDto>> GetAllOrders(int pageNumber, int pageSize);
-        Task<OrderListDto> GetOrderById(int orderId);
+        Task<ServiceMessage<OrderListDto>> GetOrderById(int orderId);
         Task<ServiceMessage> UpdateOrderProduts(int orderId, UpdateOrderDto updateOrderDto);
+        Task<ServiceMessage> SoftDeleteOrder(int orderId);
+
     }
 }
