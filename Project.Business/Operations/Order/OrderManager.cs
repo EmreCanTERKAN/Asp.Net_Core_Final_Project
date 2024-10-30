@@ -43,13 +43,14 @@ namespace Project.Business.Operations.Order
                 // Yeni bir sipariş oluştur
                 var order = new OrderEntity
                 {
+                    
                     UserId = orderDto.UserId,
                     OrderDate = DateTime.Now
                 };
 
                 decimal totalAmount = 0;
 
-                // Her sipariş ürünü için
+                // Her sipariş  ürünü için
                 foreach (var opDto in orderDto.OrderProducts)
                 {
                     // Ürünü veritabanından al

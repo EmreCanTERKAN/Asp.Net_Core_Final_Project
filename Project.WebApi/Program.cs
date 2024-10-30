@@ -10,6 +10,7 @@ using Project.Business.Operations.User;
 using Project.Data.Context;
 using Project.Data.Repositories;
 using Project.Data.UnitOfWork;
+using Project.WebApi.MiddleWares;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -102,9 +103,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+app.UseMiddleware<SimpleLoggingMiddleware>();
 app.MapControllers();
 
 app.Run();

@@ -28,6 +28,13 @@ namespace Project.MVC.Controllers
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
+            {
+                NoCache = true,
+                NoStore = true,
+                MustRevalidate = true,
+            };
+
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
             var email = jwtToken?.Claims.FirstOrDefault(c => c.Type == "Email")?.Value;
@@ -38,14 +45,15 @@ namespace Project.MVC.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();               
-                return View(products);
+                var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();   
+                
+                var activeProducts = products.Where(p => p.IsDeleted == false).ToList();
+                return View(activeProducts);
             }
 
             return View(new List<ProductDto>()); // Boş bir liste döndür
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Delete(int productId)
         {
@@ -64,35 +72,35 @@ namespace Project.MVC.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("Index","Product");
             }
 
             return View("Error", new ErrorViewModel { RequestId = "Unable to delete product." });
         }
 
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> LoadProducts()
-        {
-            var client = _clientFactory.CreateClient("ApiClient");
+        //[HttpGet]
+        //[Authorize]
+        //public async Task<IActionResult> LoadProducts()
+        //{
+        //    var client = _clientFactory.CreateClient("ApiClient");
 
-            // Token'ı Cookie'den al
-            var token = Request.Cookies["AuthToken"];
-            if (string.IsNullOrEmpty(token))
-            {
-                return Unauthorized(); // Eğer token yoksa yetkisiz hatası döndür
-            }
+        //    // Token'ı Cookie'den al
+        //    var token = Request.Cookies["AuthToken"];
+        //    if (string.IsNullOrEmpty(token))
+        //    {
+        //        return Unauthorized(); // Eğer token yoksa yetkisiz hatası döndür
+        //    }
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            var response = await client.GetAsync("Products/GetAllProduct");
+        //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        //    var response = await client.GetAsync("Products/GetAllProduct");
 
-            if (response.IsSuccessStatusCode)
-            {
-                var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
-                return Json(products);
-            }
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
+        //        return Json(products);
+        //    }
 
-            return Unauthorized();
-        }
+        //    return Unauthorized();
+        //}
     }
 }

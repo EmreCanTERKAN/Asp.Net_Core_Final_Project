@@ -35,6 +35,7 @@ namespace Project.WebApi.Controllers
                 UserId = userId,
                 OrderProducts = orderRequest.OrderProducts.Select(op => new OrderProductDto
                 {
+                    
                     ProductId = op.ProductId,
                     Quantity = op.Quantity
                 }).ToList()

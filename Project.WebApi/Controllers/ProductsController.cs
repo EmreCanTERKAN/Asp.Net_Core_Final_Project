@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Project.Business.Operations.Product;
 using Project.Business.Operations.Product.Dtos;
+using Project.WebApi.ActionFilters;
 using Project.WebApi.Models;
 
 namespace Project.WebApi.Controllers
@@ -38,6 +39,7 @@ namespace Project.WebApi.Controllers
 
         [HttpPost("add/Product")]
         [Authorize(Roles = "Admin")]
+        [LogProductActionFilter]
         public async Task<IActionResult> AddProduct(ProductRequest request)
         {
             if (!ModelState.IsValid)
