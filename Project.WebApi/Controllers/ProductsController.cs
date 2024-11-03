@@ -120,6 +120,21 @@ namespace Project.WebApi.Controllers
             }
         }
 
+        [HttpPatch("{id}/Price")]
+        public async Task<IActionResult> UpdateProductPrice(int id, decimal changeBy)
+        {
+            var result = await _productService.UpdateProductPrice(id, changeBy);
+
+            if (!result.IsSucceed)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok($"Ürünün Fiyatı {changeBy}'Olarak Başarıyla Güncellendi");
+            }
+        }
+
 
 
     }

@@ -43,7 +43,7 @@ namespace Project.Business.Operations.Order
                 // Yeni bir sipariş oluştur
                 var order = new OrderEntity
                 {
-                    
+
                     UserId = orderDto.UserId,
                     OrderDate = DateTime.Now
                 };
@@ -87,7 +87,7 @@ namespace Project.Business.Operations.Order
 
                     // Stok güncellemesi
                     product.StockQuantity -= opDto.Quantity;
-                    _productRepository.Update(product); // Stok güncellemesi için Product nesnesini kaydet
+                    await _productRepository.Update(product); // Stok güncellemesi için Product nesnesini kaydet
 
                     // OrderProduct ilişkisini ekle
                     order.OrderProducts.Add(orderProduct);
@@ -142,6 +142,7 @@ namespace Project.Business.Operations.Order
                     OrderProducts = order.OrderProducts.Select(op => new OrderProductDto
                     {
                         ProductId = op.ProductId,
+                        ProductName = op.Product.ProductName,
                         Quantity = op.Quantity,
                         Price = op.Product.Price
                     }).ToList(),
@@ -178,6 +179,7 @@ namespace Project.Business.Operations.Order
             var orderProducts = order.OrderProducts.Select(op => new OrderProductDto
             {
                 ProductId = op.ProductId,
+                ProductName = op.Product.ProductName,
                 Quantity = op.Quantity,
                 Price = op.Product.Price
             }).ToList();
@@ -211,6 +213,7 @@ namespace Project.Business.Operations.Order
                     Message = "Sipariş Bulunamadı"
                 };
             }
+            await _unitOfWork.BeginTransaction();
 
             existingOrder.IsDeleted = true;
             existingOrder.ModifiedDate = DateTime.Now;
@@ -220,11 +223,6 @@ namespace Project.Business.Operations.Order
             try
             {
                 await _unitOfWork.SaveChangesAsync();
-                return new ServiceMessage
-                {
-                    IsSucceed = true,
-                    Message = "Sipariş başarıyla silinmiştir."
-                };
             }
             catch (Exception)
             {
@@ -233,8 +231,33 @@ namespace Project.Business.Operations.Order
                     IsSucceed = false,
                     Message = "Silme işlemi sırasında bir hata oluştu"
                 };
-
             }
+
+            var orderProducts = _orderProductRepository.GetAll(op => op.OrderId == orderId).ToList();
+
+            foreach (var product in orderProducts)
+            {
+                product.IsDeleted = true;
+                product.ModifiedDate = DateTime.Now;
+                await _orderProductRepository.Update(product);
+            }
+            
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransaction();
+            }
+            catch (Exception)
+            {
+
+                throw new Exception("Bir hata oluştu");
+            }
+            return new ServiceMessage
+            {
+                IsSucceed = true,
+                Message = "Kayıt silinmiştir."
+            };
+
 
         }
 
