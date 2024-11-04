@@ -279,6 +279,9 @@ namespace Project.Business.Operations.Order
                         Message = "Sipariş bulunamadı"
                     };
                 }
+
+                decimal totalAmount = 0; // TotalAmount için yeni bir değişken
+
                 // Yeni ürünlerin her birinin stok miktarını kontrol et
                 foreach (var newProduct in updateOrderDto.Products)
                 {
@@ -292,13 +295,19 @@ namespace Project.Business.Operations.Order
                             Message = $"Ürün Id{newProduct.ProductId} için yeterli stok bulunmamaktadır."
                         };
                     }
+
+                    // TotalAmount'u her bir ürünün güncel fiyatıyla çarp ve ekle
+                    totalAmount += productEntity.Price * newProduct.Quantity;
                 }
 
+                // Mevcut ürünleri sil
                 var existingOrderProducts = existingOrder.OrderProducts.ToList();
                 foreach (var product in existingOrderProducts)
                 {
                     await _orderProductRepository.Delete(product, false);
                 }
+
+                // Yeni ürünleri ekle
                 foreach (var newProduct in updateOrderDto.Products)
                 {
                     var orderProduct = new OrderProductEntity
@@ -309,6 +318,10 @@ namespace Project.Business.Operations.Order
                     };
                     await _orderProductRepository.Add(orderProduct);
                 }
+
+                // Güncellenmiş TotalAmount değerini kaydet
+                existingOrder.TotalAmount = totalAmount;
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransaction();
 
@@ -327,8 +340,8 @@ namespace Project.Business.Operations.Order
                     Message = "Güncelleme sırasında bir hata oluştu: " + ex.Message
                 };
             }
-
         }
+
 
     }
 }

@@ -78,8 +78,10 @@ namespace Project.WebApi.Controllers
             }
             else
             {
+                _productService.ClearProductCache();
                 return Ok($"Ürün Stoğu {changeBy} Adet Olarak Başarıyla Güncellendi");
             }
+            
         }
 
         [HttpDelete("{id}")]
@@ -116,6 +118,7 @@ namespace Project.WebApi.Controllers
             }
             else
             {
+                _productService.ClearProductCache();
                 return await GetProduct(id);
             }
         }
@@ -131,6 +134,7 @@ namespace Project.WebApi.Controllers
             }
             else
             {
+                _productService.ClearProductCache();
                 return Ok($"Ürünün Fiyatı {changeBy}'Olarak Başarıyla Güncellendi");
             }
         }

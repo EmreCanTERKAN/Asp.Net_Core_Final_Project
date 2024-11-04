@@ -23,6 +23,6 @@ namespace Project.Business.Operations.Product
         Task<ServiceMessage> UpdateProduct(UpdateProductDto product);
 
         Task<ServiceMessage> UpdateProductPrice(int id, decimal changeBy);
-
+        void ClearProductCache();
     }
 }

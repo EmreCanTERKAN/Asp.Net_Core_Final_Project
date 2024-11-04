@@ -265,5 +265,10 @@ namespace Project.Business.Operations.Product
                 IsSucceed = true
             };
         }
+
+        public void ClearProductCache()
+        {
+            _cache.Remove("ProductsCache");
+        }
     }
 }

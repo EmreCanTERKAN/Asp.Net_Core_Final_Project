@@ -12,12 +12,10 @@ namespace Project.WebApi.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
-
         public OrdersController(IOrderService orderService)
         {
             _orderService = orderService;
         }
-
         [HttpPost]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddOrder(AddOrderRequest orderRequest)
@@ -48,14 +46,12 @@ namespace Project.WebApi.Controllers
             }
             return Ok(result.Message);
         }
-
         [HttpGet("GetAllOrders")]
         public async Task<IActionResult> GetAllOrders([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var orders = await _orderService.GetAllOrders(pageNumber, pageSize);
             return Ok(orders);
         }
-
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrderById(int orderId)
         {
@@ -68,7 +64,6 @@ namespace Project.WebApi.Controllers
 
             return Ok(order.Data);
         }
-
         [HttpPut("{orderId}")]
         public async Task<IActionResult> UpdateOrder(int orderId, [FromBody] UpdateOrderRequest request)
         {
@@ -79,11 +74,15 @@ namespace Project.WebApi.Controllers
 
             var orderDto = new UpdateOrderDto
             {
-                Products = request.Products,
+                Products = request.Products
+                .Select(p => new OrderProductDto
+                {
+                    ProductId = p.ProductId,
+                    Quantity = p.Quantity,
+                }).ToList()
+                
             };
-
             var result = await _orderService.UpdateOrderProduts(orderId, orderDto);
-
             if (result.IsSucceed)
             {
                 return Ok(result.Message);
@@ -93,7 +92,6 @@ namespace Project.WebApi.Controllers
                 return BadRequest();
             }
         }
-
         [HttpDelete("{orderId}")]
         public async Task<IActionResult> SoftDeleteOrder(int orderId)
         {
