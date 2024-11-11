@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
+using System.Text.Json;
 
 public class ExceptionMiddleware
 {
@@ -33,10 +34,13 @@ public class ExceptionMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-        return context.Response.WriteAsync(new
+        var result = JsonSerializer.Serialize(new
         {
             StatusCode = context.Response.StatusCode,
             Message = "Sunucuda bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-        }.ToString());
+        });
+
+        return context.Response.WriteAsync(result);
     }
+
 }

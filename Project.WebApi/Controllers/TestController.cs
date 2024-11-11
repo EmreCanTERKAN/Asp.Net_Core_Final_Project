@@ -31,5 +31,11 @@ namespace Project.MVC.Controllers
             var claims = User.Claims.Select(c => new { c.Type, c.Value });
             return Ok(claims);
         }
+
+        [HttpGet("throw")]
+        public IActionResult ThrowException()
+        {
+            throw new Exception("Bu bir test istisnasıdır");
+        }
     }
 }

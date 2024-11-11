@@ -55,9 +55,10 @@ namespace Project.WebApi.Controllers
             };
 
             var result = await _productService.AddProduct(addProductDto);
-
+            _productService.ClearProductCache();
             if (result.IsSucceed)
             {
+
                 return Ok(addProductDto);
             }
             else
@@ -95,6 +96,7 @@ namespace Project.WebApi.Controllers
             }
             else
             {
+                _productService.ClearProductCache();
                 return Ok(result.Message);
             }
         }
